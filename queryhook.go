@@ -19,6 +19,7 @@ type QueryHook struct {
 	verbose         bool
 	durationAsField bool
 	errorAsField    bool
+	duration        bool
 	queryLevel      zapcore.Level
 	errorLevel      zapcore.Level
 }
@@ -44,6 +45,7 @@ func WithVerbose(on bool) Option {
 // written in the message by default.
 func WithDurationAsField() Option {
 	return func(h *QueryHook) {
+		h.duration = true
 		h.durationAsField = true
 	}
 }
@@ -73,15 +75,27 @@ func WithLevels(queryLevel, errorLevel zapcore.Level) Option {
 	}
 }
 
+// WithDuration configures the hook to log the duration.
+func WithDuration() Option {
+	return func(h *QueryHook) {
+		h.duration = true
+	}
+}
+
 // NewQueryHook creates a new query hook.
 func NewQueryHook(logger *zap.Logger, opts ...Option) *QueryHook {
-	qh := &QueryHook{}
-
-	qh.enabled = true
-	qh.precision = time.Millisecond
-	qh.queryLevel = zapcore.DebugLevel
-	qh.errorLevel = zapcore.ErrorLevel
-	qh.logger = logger
+	qh := &QueryHook{
+		errorFieldName:  "error",
+		precision:       time.Millisecond,
+		logger:          logger,
+		enabled:         true,
+		verbose:         false,
+		durationAsField: false,
+		errorAsField:    false,
+		duration:        false,
+		queryLevel:      zapcore.DebugLevel,
+		errorLevel:      zapcore.ErrorLevel,
+	}
 
 	for _, opt := range opts {
 		opt(qh)
@@ -118,13 +132,13 @@ func (h *QueryHook) AfterQuery(_ context.Context, event *bun.QueryEvent) {
 	message := event.Query
 	fields := []zap.Field{}
 
-	if h.durationAsField {
+	if h.duration && h.durationAsField {
 		fields = append(fields, zap.Field{
 			Key:       "duration",
 			Type:      zapcore.StringerType,
 			Interface: dur.Round(h.precision),
 		})
-	} else {
+	} else if h.duration {
 		message = fmt.Sprintf("duration: %s %s", dur.Round(h.precision), message)
 	}
 
