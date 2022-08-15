@@ -19,12 +19,9 @@ import (
 func postgreDSN(t *testing.T) string {
 	t.Helper()
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
+	dsn := fmt.Sprintf("postgres://postgres:postgres@%s:%s/postgres?sslmode=disable",
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DATABASE"),
 	)
 
 	return dsn
