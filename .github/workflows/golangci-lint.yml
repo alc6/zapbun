@@ -12,14 +12,18 @@ permissions:
   # Optional: allow read access to pull request. Use with `only-new-issues` option.
   # pull-requests: read
 jobs:
-  golangci:
+  lint:
     name: lint
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -40,4 +44,8 @@ jobs:
       - name: Go Test
         run: go test -v ./...
         env:
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PWD: postgres
+          POSTGRES_DATABASE: postgres
