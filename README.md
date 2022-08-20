@@ -14,4 +14,6 @@ hook := NewQueryHook(logger,
     WithDuration(false), // log the duration true/false
     WithDurationPrecision(time.Millisecond), // usually time.Millisecond/time.Microsecond
 )
+
+db.AddQueryHook(hook)
 ```
